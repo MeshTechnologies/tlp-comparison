@@ -1,0 +1,2 @@
+['remote "gcs"']
+    url = gs://pieces-ml/dvcstore
