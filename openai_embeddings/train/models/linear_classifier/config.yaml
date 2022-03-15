@@ -1,0 +1,44 @@
+# Paths to the artifacts we've defined as input 'deps' in our dvc.yaml (e.g. data, tokenizer, embeddings)
+input_paths:
+  data:
+    root: data/['raw' or 'processed']/[YOUR DATA NAME]
+
+# Paths to the artifacts we've defined as output 'outs' in our dvc.yaml (e.g. models, label mappings)
+output_paths:
+  model:
+    root: models/model
+
+# Global, non-tunable parameters (e.g. seed, batch size, number of epochs)
+params:
+  output_dim: 56
+  seed: 42
+  n_epochs: 1
+  batch_size: 64
+  objective: val_sparse_categorical_accuracy
+  early_stopping_threshold: 3
+
+# Without tuning, model will train with hyperparameters fixed by 'default_value' field
+# do not edit the `hyperparameters.yaml` file, it is strictly an output log.
+# To reproduce a previous experiment without tuning, manually update the default_value fields.
+tuning:
+  tune: False
+  max_trials: 2
+  
+  # https://keras.io/api/keras_tuner/hyperparameters/
+  # See hparam_config_example.yaml for an example.
+  hyperparams:
+    model_architecture:
+      default_value: Linear_classifier
+    loss:
+      default_value: Crossentropy
+    optimizer:
+      default_value: Adam
+    hidden_dim:
+      default_value: 64
+    dropout_p:
+      default_value: 0.1
+    learning_rate:
+      default_value: 0.001
+
+    
+

@@ -1,0 +1,45 @@
+# Variables to be used in the below 'stages'.
+#   Note: To read vars from config.yaml, see below how it must be a comma-separated list without spaces.
+vars:
+  - config.yaml:input_paths,output_paths,params,tuning
+  - working_directory: ../../ # relative to location of this file
+
+stages:
+  train:
+    wdir: ${working_directory}
+    # Main script for train/tune. Should not need to be changed.
+    cmd: >-
+      python3 src/run.py ${output_paths.model.root}/config.yaml ${output_paths.model.root}/hyperparameters.yaml
+    # Input dependencies (artifacts and .py scripts that are needed to run the main src/run.py script)
+    deps:
+      # Artifacts (e.g. data, tokenizers, etc.)
+      - ${input_paths.data.root}
+      # Python scripts
+      - src/data/data_provider.py
+      - src/utils/utils.py
+      - src/trainer.py
+      - src/run.py
+    # DVC track non-tunable experiment parameters (e.g. seed, batch size, number of epochs)
+    # This will read from the 'params' section in the config.yaml file so no need to edit here.
+    params:
+      - ${output_paths.model.root}/config.yaml:
+          - params
+    # Tell DVC that were are using DVCLive to track metrics. Studio will look for these files in the 'training metrics' dir
+    # 'summary: true' also produces a final 'training_metrics.json' file with metrics of just the last epoch.
+    live:
+      training_metrics:
+        cache: false
+        summary: true
+        html: false
+    # Metric artifacts (e.g. metrics, plots, etc.) to attach to the experiment.
+    metrics:
+      - training_metrics.json:
+          cache: false
+    # Output artifacts (e.g. models, predictions, etc.)
+    outs:
+      # This file is auto-generated and should not be edited.
+      - ${output_paths.model.root}/hyperparameters.yaml:
+          cache: false
+
+
+    
