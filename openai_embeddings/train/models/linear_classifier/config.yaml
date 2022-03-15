@@ -1,12 +1,14 @@
 # Paths to the artifacts we've defined as input 'deps' in our dvc.yaml (e.g. data, tokenizer, embeddings)
 input_paths:
   data:
-    root: data/['raw' or 'processed']/[YOUR DATA NAME]
+    root: data/processed/text-similarity-ada-001
 
 # Paths to the artifacts we've defined as output 'outs' in our dvc.yaml (e.g. models, label mappings)
 output_paths:
   model:
-    root: models/model
+    root: models/linear_classifier
+    tflite_model: models/linear_classifier/model.tflite
+    keras_model: models/linear_classifier/keras_model/
 
 # Global, non-tunable parameters (e.g. seed, batch size, number of epochs)
 params:

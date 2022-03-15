@@ -16,7 +16,7 @@ def build_linear_classifier(config, hparams) -> tf.keras.Model:
 
     model = tf.keras.Sequential([
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dropout(hparams["hidden_dim"]),
+        tf.keras.layers.Dropout(hparams["dropout_p"]),
         tf.keras.layers.Dense(hparams["hidden_dim"], activation='relu'),
         tf.keras.layers.Dropout(hparams["dropout_p"]),
         tf.keras.layers.Dense(params["output_dim"], name='output')

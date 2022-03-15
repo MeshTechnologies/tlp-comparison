@@ -33,7 +33,8 @@ class ModelTrainer:
         """
 
         # Print the model summary
-        self.model.summary()
+        # TODO: it has to be built before .summary() is called
+        # self.model.summary()
 
         # Create the callbacks
         early_stopping_callback = tf.keras.callbacks.EarlyStopping(
@@ -50,7 +51,6 @@ class ModelTrainer:
             filepath=self.config["output_paths"]["model"]["keras_model"],
             monitor=self.params["objective"],
             verbose=0,
-
             save_best_only=True,
             save_weights_only=False,
             mode="auto",
@@ -68,7 +68,7 @@ class ModelTrainer:
             validation_data=val_ds,
             epochs=self.params["n_epochs"],
             callbacks=[
-                model_checkpoint_callback,
+                # model_checkpoint_callback,
                 early_stopping_callback,
                 DvcLiveCallback(),
                 tensorboard_callback

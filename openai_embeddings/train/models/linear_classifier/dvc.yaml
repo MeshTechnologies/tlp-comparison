@@ -37,6 +37,8 @@ stages:
           cache: false
     # Output artifacts (e.g. models, predictions, etc.)
     outs:
+      - ${output_paths.model.tflite_model}
+      - ${output_paths.model.keras_model}
       # This file is auto-generated and should not be edited.
       - ${output_paths.model.root}/hyperparameters.yaml:
           cache: false

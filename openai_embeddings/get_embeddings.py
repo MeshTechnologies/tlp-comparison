@@ -1,6 +1,7 @@
 import os
 import json
 import openai
+from time import sleep
 
 
 def get_embedding(text, engine, break_lines=False):
@@ -46,6 +47,8 @@ def get_classification_embeddings(dataset_path, models):
                                 open(os.path.join(output_path, model, subset, language, f'{file.split(".")[0]}.json'), 'w'),
                                 indent=4
                             )
+                            # rate limit
+                            sleep(1.5)
 
 
 def get_textvscode_embeddings(dataset_path, models):
@@ -86,6 +89,8 @@ def get_textvscode_embeddings(dataset_path, models):
                             open(os.path.join(output_path, model, subset, data_type, f'{file.split(".")[0]}.json'), 'w'),
                             indent=4
                         )
+                        # rate limit
+                        sleep(1.5)
 
 
 def main():
@@ -98,33 +103,33 @@ def main():
 
     # programming language classification dataset
     get_classification_embeddings(
-        dataset_path='56_lang_sampled_dataset_weak_cobol_test',
+        dataset_path='56_lang_sampled_dataset_weak_cobol',
         models=[
-            'text-similarity-ada-001',
-            'text-similarity-babbage-001',
-            'text-similarity-curie-001',
-            'text-similarity-davinci-001',
+            # 'text-similarity-ada-001',
+            # 'text-similarity-babbage-001',
+            # 'text-similarity-curie-001',
+            # 'text-similarity-davinci-001',
             'code-search-ada-code-001',
-            'code-search-ada-text-001',
-            'code-search-babbage-code-001',
-            'code-search-babbage-text-001'
+            # 'code-search-ada-text-001',
+            # 'code-search-babbage-code-001',
+            # 'code-search-babbage-text-001'
         ]
     )
 
     # TextVsCode dataset
-    get_textvscode_embeddings(
-        dataset_path='diverse_sample_v1_test',
-        models=[
-            'text-similarity-ada-001',
-            'text-similarity-babbage-001',
-            'text-similarity-curie-001',
-            'text-similarity-davinci-001',
-            'code-search-ada-code-001',
-            'code-search-ada-text-001',
-            'code-search-babbage-code-001',
-            'code-search-babbage-text-001'
-        ]
-    )
+    # get_textvscode_embeddings(
+    #     dataset_path='diverse_sample_v1_test',
+    #     models=[
+    #         'text-similarity-ada-001',
+    #         'text-similarity-babbage-001',
+    #         'text-similarity-curie-001',
+    #         'text-similarity-davinci-001',
+    #         'code-search-ada-code-001',
+    #         'code-search-ada-text-001',
+    #         'code-search-babbage-code-001',
+    #         'code-search-babbage-text-001'
+    #     ]
+    # )
 
 
 if __name__ == '__main__':

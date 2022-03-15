@@ -1,3 +1,4 @@
+import tensorflow as tf
 
 
 class DataProvider:
@@ -21,6 +22,8 @@ class DataProvider:
         """ Loads and prepare the dataset(s) for training.
         The final datasets should be assigned to DataProvider Attributes (e.g. self.train_ds = train.ds)
         """
+
+        dataset_root = self.config['input_paths']['data']['root']
 
 
 
