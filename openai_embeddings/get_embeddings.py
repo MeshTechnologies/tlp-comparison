@@ -1,96 +1,46 @@
 import os
 import json
+import time
 import openai
-from time import sleep
+from tqdm import tqdm
 
 
-def get_embedding(text, engine, break_lines=False):
+def get_embeddings(data, engine, break_lines):
     if break_lines:
-        text = text.replace('\n', ' ')
+        for i in range(len(data)):
+            data[i] = data[i].replace('\n', ' ')
 
-    return openai.Embedding.create(input=[text], engine=engine)['data'][0]['embedding']
+    response = openai.Embedding.create(input=data, engine=engine)['data']
+    return [line['embedding'] for line in response]
 
 
-def get_classification_embeddings(dataset_path, models):
-    # create subdirectory for this dataset
-    if not os.path.exists(os.path.join('openai_embeddings', 'output', 'classification')):
-        os.mkdir(os.path.join('openai_embeddings', 'output', 'classification'))
+def build_embedding_dataset(path, engine, batch, break_lines):
+    if not os.path.exists(os.path.join('openai_embeddings', 'output', engine)):
+        os.mkdir(os.path.join('openai_embeddings', 'output', engine))
 
-    output_path = os.path.join('openai_embeddings', 'output', 'classification')
-
-    for model in models:
-        # create subdirectory for embeddings from specific model
-        if not os.path.exists(os.path.join(output_path, model)):
-            os.mkdir(os.path.join(output_path, model))
-
-        for subset in ['train', 'valid', 'test']:
-            # create subdirectories for train/valid/test data
-            if not os.path.exists(os.path.join(output_path, model, subset)):
-                os.mkdir(os.path.join(output_path, model, subset))
-
-            for language in os.listdir(os.path.join(dataset_path, subset)):
-                # do not use temporary files/directories
+    for subset in os.listdir(path):
+        print(f'Generating embeddings for {subset}...')
+        languages = os.listdir(os.path.join(path, subset))
+        with tqdm(total=len(languages) * len(os.listdir(os.path.join(path, subset, languages[0])))) as pbar:
+            for language in languages:
                 if not language.startswith('.'):
-                    # create subdirectories for every programming language
-                    if not os.path.exists(os.path.join(output_path, model, subset, language)):
-                        os.mkdir(os.path.join(output_path, model, subset, language))
+                    files = os.listdir(os.path.join(path, subset, language))
+                    for i in range(0, len(files), batch):
+                        data_batch = []
 
-                    for file in os.listdir(os.path.join(dataset_path, subset, language)):
-                        # do not use temporary files/directories
-                        if not file.startswith('.'):
-                            # read text from dataset
-                            text = open(os.path.join(dataset_path, subset, language, file), 'r').read()
-                            print('Generating ' + os.path.join(output_path, model, subset, language, f'{file.split(".")[0]}.json'))
-                            # generate embeddings
-                            json.dump(
-                                {'text': text, 'embeddings': get_embedding(text, model)},
-                                open(os.path.join(output_path, model, subset, language, f'{file.split(".")[0]}.json'), 'w'),
-                                indent=4
-                            )
-                            # rate limit
-                            sleep(1.5)
+                        for filename in files[i:i + batch]:
+                            pbar.update(1)
+                            if not filename.startswith('.'):
+                                data_batch .append(open(os.path.join(path, subset, language, filename), 'r').read())
 
+                        embeddings = get_embeddings(data_batch, engine, break_lines)
 
-def get_textvscode_embeddings(dataset_path, models):
-    # create subdirectory for this dataset
-    if not os.path.exists(os.path.join('openai_embeddings', 'output', 'textvscode')):
-        os.mkdir(os.path.join('openai_embeddings', 'output', 'textvscode'))
-
-    output_path = os.path.join('openai_embeddings', 'output', 'textvscode')
-
-    for model in models:
-        # create subdirectory for embeddings from specific model
-        if not os.path.exists(os.path.join(output_path, model)):
-            os.mkdir(os.path.join(output_path, model))
-
-        for subset in ['train', 'valid', 'test']:
-            # create subdirectories for train/valid/test data
-            if not os.path.exists(os.path.join(output_path, model, subset)):
-                os.mkdir(os.path.join(output_path, model, subset))
-
-            for data_type in ['code', 'text']:
-                # create subdirectories for both code and text
-                if not os.path.exists(os.path.join(output_path, model, subset, data_type)):
-                    os.mkdir(os.path.join(output_path, model, subset, data_type))
-
-                for file in os.listdir(os.path.join(dataset_path, subset, data_type)):
-                    # do not use temporary files/directories
-                    if not file.startswith('.'):
-                        # read text from dataset
-                        text = open(os.path.join(dataset_path, subset, data_type, file), 'r').read()
-                        # generate embeddings
-                        if data_type == 'code':
-                            embeddings = get_embedding(text, model)
-                        else:
-                            embeddings = get_embedding(text, model, break_lines=True)
-                        print('Generating ' + os.path.join(output_path, model, subset, data_type, f'{file.split(".")[0]}.json'))
-                        json.dump(
-                            {'text': text, 'embeddings': embeddings},
-                            open(os.path.join(output_path, model, subset, data_type, f'{file.split(".")[0]}.json'), 'w'),
-                            indent=4
-                        )
                         # rate limit
-                        sleep(1.5)
+                        time.sleep(1)
+
+                        with open(os.path.join('openai_embeddings', 'output', engine, f'{subset}.jsonl'), 'w+') as f:
+                            for line in embeddings:
+                                f.write(json.dumps({'embeddings': line, 'label': language}, ensure_ascii=False) + '\n')
 
 
 def main():
@@ -102,34 +52,12 @@ def main():
         os.mkdir(os.path.join('openai_embeddings', 'output'))
 
     # programming language classification dataset
-    get_classification_embeddings(
-        dataset_path='56_lang_sampled_dataset_weak_cobol',
-        models=[
-            # 'text-similarity-ada-001',
-            # 'text-similarity-babbage-001',
-            # 'text-similarity-curie-001',
-            # 'text-similarity-davinci-001',
-            'code-search-ada-code-001',
-            # 'code-search-ada-text-001',
-            # 'code-search-babbage-code-001',
-            # 'code-search-babbage-text-001'
-        ]
+    build_embedding_dataset(
+        path='56_lang_sampled_dataset_weak_cobol',
+        engine='code-search-ada-code-001',
+        batch=512,
+        break_lines=False
     )
-
-    # TextVsCode dataset
-    # get_textvscode_embeddings(
-    #     dataset_path='diverse_sample_v1_test',
-    #     models=[
-    #         'text-similarity-ada-001',
-    #         'text-similarity-babbage-001',
-    #         'text-similarity-curie-001',
-    #         'text-similarity-davinci-001',
-    #         'code-search-ada-code-001',
-    #         'code-search-ada-text-001',
-    #         'code-search-babbage-code-001',
-    #         'code-search-babbage-text-001'
-    #     ]
-    # )
 
 
 if __name__ == '__main__':
