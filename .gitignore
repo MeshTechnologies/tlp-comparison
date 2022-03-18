@@ -2,3 +2,5 @@
 30langs_200lines_fragmented*
 56_lang_sampled_dataset_weak_cobol*
 diverse_sample_v1*
+/02-text2image_generated
+/01-manually_labelled_code_screenshots

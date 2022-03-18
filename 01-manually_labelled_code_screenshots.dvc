@@ -1,0 +1,12 @@
+md5: 861e7a9ef984a65e3a9db06e96b690da
+frozen: true
+deps:
+- path: raw/ocr/01-manually_labelled_code_screenshots
+  repo:
+    url: git@github.com:MeshTechnologies/dataset-registry.git
+    rev_lock: c54c528d2c705cb515d00547507f3eecdb653cf8
+outs:
+- md5: 3160b4e5be7c5e6756916f7db16be9b1.dir
+  size: 29823112
+  nfiles: 103
+  path: 01-manually_labelled_code_screenshots
